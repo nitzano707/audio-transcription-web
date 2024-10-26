@@ -1,14 +1,14 @@
 import os
 import requests
 from flask import Flask, request, jsonify
+from groq import Groq
 
 app = Flask(__name__)
 
+groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+
 @app.route('/transcribe', methods=['POST'])
 def transcribe():
-    # מפתח ה-API
-    api_key = os.getenv("GROQ_API_KEY")
-
     # קבלת קובץ האודיו מהבקשה
     if 'audio' not in request.files:
         return jsonify({"error": "No audio file provided"}), 400
@@ -26,18 +26,18 @@ def transcribe():
     }
 
     # שליחת הקובץ ל-API של Groq
-    files_data = {"file": (audio_file.filename, audio_file, "audio/mpeg")}
-    headers = {"Authorization": f"Bearer {api_key}"}
-
-    response = requests.post(api_url, headers=headers, params=params, files=files_data)
-
-    # בדיקת התגובה מהשרת
-    if response.status_code == 200:
-        transcription = response.json()
-        transcription_text = transcription.get("text", "No transcription available")
-        return jsonify({"text": transcription_text})
-    else:
-        return jsonify({"error": response.text}), response.status_code
+    try:
+        with open(audio_file, "rb") as file:
+            transcription = groq_client.audio.transcriptions.create(
+                file=(audio_file.filename, file.read()),
+                model=params["model"],
+                language=params["language"],
+                response_format=params["response_format"],
+            )
+            transcription_text = transcription.text
+            return jsonify({"text": transcription_text})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/', methods=['GET'])
 def home():
