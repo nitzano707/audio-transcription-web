@@ -26,15 +26,16 @@ def transcribe():
     }
 
     # שליחת הקובץ ל-API של Groq
-    files = {"file": (audio_file.filename, audio_file, "audio/m4a")}
+    files_data = {"file": (audio_file.filename, audio_file, "audio/mpeg")}
     headers = {"Authorization": f"Bearer {api_key}"}
 
-    response = requests.post(api_url, headers=headers, params=params, files=files)
+    response = requests.post(api_url, headers=headers, params=params, files=files_data)
 
     # בדיקת התגובה מהשרת
     if response.status_code == 200:
         transcription = response.json()
-        return jsonify({"text": transcription.get("text", "No transcription available")})
+        transcription_text = transcription.get("text", "No transcription available")
+        return jsonify({"text": transcription_text})
     else:
         return jsonify({"error": response.text}), response.status_code
 
