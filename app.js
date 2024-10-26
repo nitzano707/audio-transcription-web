@@ -6,31 +6,21 @@ async function transcribeAudio() {
     }
 
     const audioFile = fileInput.files[0];
-    const apiKey = "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"; // שים כאן את ה-API Key שלך
+    const apiUrl = "https://<YOUR_RENDER_SERVER_URL>/transcribe"; // החלף בכתובת השרת מ-Render
 
     try {
-        // יצירת אובייקט FormData להעלאת קובץ האודיו
         const formData = new FormData();
-        formData.append("file", audioFile);
-        formData.append("model", "whisper-large-v3-turbo");
-        formData.append("language", "he");
-        formData.append("response_format", "verbose_json");
+        formData.append("audio", audioFile);
 
-        // שליחת הבקשה ל-API של Groq
-        const response = await fetch("https://api.groq.com/audio/transcriptions", {
+        const response = await fetch(apiUrl, {
             method: "POST",
-            headers: {
-                "Authorization": `Bearer ${apiKey}`
-            },
             body: formData
         });
 
-        // בדיקה אם הבקשה הושלמה בהצלחה
         if (!response.ok) {
             throw new Error("Error in transcription: " + response.statusText);
         }
 
-        // קבלת תוצאות התמלול והצגתן
         const result = await response.json();
         document.getElementById("transcriptionResult").innerText = result.text;
 
