@@ -1,10 +1,10 @@
 const express = require('express');
 const fs = require('fs');
 const multer = require('multer');
-const Groq = require('groq-sdk');
+const axios = require('axios');
+const FormData = require('form-data');
 
 const app = express();
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 // הגדרת המיקום בו קובץ האודיו יישמר זמנית
 const upload = multer({ dest: 'uploads/' });
@@ -14,16 +14,28 @@ app.post('/transcribe', upload.single('audio'), async (req, res) => {
     const audioFilePath = req.file.path;
 
     try {
-        // ביצוע תמלול באמצעות ה-Groq SDK
-        const transcription = await groq.audio.transcriptions.create({
-            file: fs.createReadStream(audioFilePath),
-            model: 'whisper-large-v3-turbo',
-            language: 'he',
-            response_format: 'verbose_json',
+        // קריאת הקובץ כ-Stream
+        const fileStream = fs.createReadStream(audioFilePath);
+
+        // יצירת FormData לצורך שליחת הקובץ ל-API
+        const formData = new FormData();
+        formData.append("file", fileStream);
+        formData.append("model", "whisper-large-v3-turbo");
+        formData.append("temperature", 0);
+        formData.append("response_format", "verbose_json");
+        formData.append("language", "he");
+        formData.append("prompt", "");
+
+        // הגדרת הבקשה ל-Groq API
+        const response = await axios.post('https://api.groq.com/audio/transcriptions', formData, {
+            headers: {
+                'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
+                ...formData.getHeaders() // להוסיף את הכותרות המתאימות ל-FormData
+            }
         });
 
         // החזרת התמלול לדפדפן
-        res.json({ text: transcription.text });
+        res.json({ text: response.data.text });
     } catch (error) {
         console.error("Error in transcription:", error);
         res.status(500).send('Error in transcription');
