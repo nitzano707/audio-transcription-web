@@ -1,10 +1,8 @@
 import os
 import requests
 from flask import Flask, request, jsonify
-from flask_cors import CORS
 
 app = Flask(__name__)
-CORS(app)  # הוספת תמיכה ב-CORS לכל המסלולים
 
 @app.route('/transcribe', methods=['POST'])
 def transcribe():
@@ -40,6 +38,10 @@ def transcribe():
         return jsonify({"text": transcription_text})
     else:
         return jsonify({"error": response.text}), response.status_code
+
+@app.route('/', methods=['GET'])
+def home():
+    return "Welcome to the Audio Transcription API!"
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
