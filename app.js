@@ -6,7 +6,8 @@ async function transcribeAudio() {
     }
 
     const audioFile = fileInput.files[0];
-    const apiUrl = "https://<YOUR_RENDER_SERVER_URL>/transcribe"; // החלף בכתובת השרת מ-Render
+    const apiUrl = "https://audio-transcription-web.onrender.com"; // החלף בכתובת השרת מ-Render
+   
 
     try {
         const formData = new FormData();
