@@ -1,8 +1,10 @@
 import os
 import requests
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)  # הוספת תמיכה ב-CORS לכל המסלולים
 
 @app.route('/transcribe', methods=['POST'])
 def transcribe():
